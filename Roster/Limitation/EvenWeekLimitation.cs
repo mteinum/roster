@@ -1,4 +1,4 @@
-﻿namespace Roster
+﻿namespace Roster.Limitation
 {
     public class EvenWeekLimitation : IPersonLimitation
     {

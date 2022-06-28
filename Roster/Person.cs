@@ -1,4 +1,6 @@
-﻿namespace Roster
+﻿using Roster.Limitation;
+
+namespace Roster
 {
     public class Person
     {
@@ -8,13 +10,7 @@
 
         public List<IPersonLimitation> Limitations { get; set; }
 
-        public bool IsAvailable(Duty duty)
-        {
-            if (Duties.Any(d => d.DateTime == duty.DateTime))
-                return false;
-
-            return Limitations.All(l => l.IsAvailable(duty));
-        }
+        public bool IsAvailable(Duty duty) => Limitations.All(l => l.IsAvailable(duty));
 
         public List<Duty> Duties { get; set; }
 
@@ -36,11 +32,11 @@
             return $"{Name} ({Duties.Count})";
         }
 
-        public List<DateTime> Dates { get; set; }
+        public List<DateTime> AvailableDates { get; set; }
 
         public int Priority(Duty duty)
         {
-            if (Dates?.Contains(duty.DateTime) == true)
+            if (AvailableDates?.Contains(duty.DateTime) == true)
                 return 0;
 
             return 1;
