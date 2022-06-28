@@ -11,7 +11,7 @@
 
         public bool IsAvailable(Duty duty)
         {
-            if (Dates == null)
+            if (Dates.Count == 0)
                 return true;
 
             if (Dates.Contains(duty.DateTime))

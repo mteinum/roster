@@ -26,6 +26,7 @@
                     .Where(p => string.IsNullOrEmpty(p.TogetherWith))
                     .OrderBy(p => p.Priority(duty))
                     .ThenBy(p => p.Duties.Count)
+                    .ThenBy(p => p.AvailableDays)
                     .ThenBy(p => p.LastDuty)
                     .First();
             }
@@ -55,6 +56,7 @@
                             .Where(p => onlyAsPerson1.Contains(p.Name) == false)
                             .OrderBy(p => p.Priority(duty))
                             .ThenBy(p => p.Duties.Count)
+                            .ThenBy(p => p.AvailableDays)
                             .ThenBy(p => p.LastDuty)
                             .First();
                     }

@@ -34,6 +34,8 @@ namespace Roster
 
         public List<DateTime> AvailableDates { get; set; }
 
+        public int AvailableDays { get; set; }
+
         public int Priority(Duty duty)
         {
             if (AvailableDates?.Contains(duty.DateTime) == true)

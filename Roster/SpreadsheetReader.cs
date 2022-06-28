@@ -73,21 +73,44 @@ namespace Roster
                 };
 
             var vakt1 = row.Count > 9 ? row[9].ToString() : null;
-            var includeDates = row.Count > 10 ? row[10].ToString() : null;
+            var available = row.Count > 10 ? row[10].ToString() : null;
 
             var person = new Person
             {
                 Name = $"{row[1]} {row[0]}",
                 Limitations = new List<IPersonLimitation>(),
                 Duties = new List<Duty>(),
-                TogetherWith = vakt1
+                TogetherWith = vakt1,
+                AvailableDates = new List<DateTime>(),
+                AvailableDays = wd.All(b => b == false) ? 5 : wd.Count(b => b)
             };
 
             person.Limitations.Add(new NoDuplicateDutyLimitation(person.Duties));
 
-            if (includeDates != null)
+            if (available != null)
             {
-                person.AvailableDates = includeDates.Split(';').Select(s => DateTime.ParseExact(s, "yyyyMMdd", null)).ToList();
+                var dates = available.Split(';');
+
+                foreach (var date in dates)
+                {
+                    // syntax:
+                    // part;part;part
+                    //
+                    // part:
+                    // single date: yyyyMMdd
+                    // after date: yyyyMMdd+
+                    // range: yyyyMMdd-yyyyMMdd (TODO)
+
+                    if (date.EndsWith("+"))
+                    {
+                        person.Limitations.Add(new AvailableAfterLimitation(DateTime.ParseExact(date.Substring(0, 8), "yyyyMMdd", null)));
+                    }
+                    else
+                    {
+                        person.AvailableDates.Add(DateTime.ParseExact(date, "yyyyMMdd", null));
+                    }
+                }
+
                 person.Limitations.Add(new OnlyOnAvailableDatesLimitation(person.AvailableDates));
             }
 
