@@ -11,6 +11,7 @@
         public Person Person { get; set; }
 
         public Person Person2 { get; set; }
+        public bool WeaponRent { get; set; }
 
         public override string ToString()
         {

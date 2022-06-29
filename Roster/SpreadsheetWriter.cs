@@ -13,25 +13,24 @@ namespace Roster
             {
                 var oblist = new List<object>() { content };
 
-                var valueRange = new ValueRange
+                return new ValueRange
                 {
                     MajorDimension = "COLUMNS",
                     Range = $"Høst 2022!{column}{row}",
                     Values = new List<IList<object>> { oblist }
                 };
-
-                return valueRange;
             }
 
             foreach (var duty in duties)
             {
                 values.Add(CreateValueRange(duty.Row, "H", duty.Person.Name));
+                values.Add(CreateValueRange(duty.Row, "I", duty.Person.Mobile));
 
                 if (duty.Person2 != null)
                 {
                     values.Add(CreateValueRange(duty.Row, "J", duty.Person2.Name));
+                    values.Add(CreateValueRange(duty.Row, "K", duty.Person2.Mobile));
                 }
-
             }
 
             BatchUpdateValuesRequest body = new()
@@ -40,8 +39,7 @@ namespace Roster
                 ValueInputOption = "RAW"
             };
 
-
-            SpreadsheetsResource.ValuesResource.BatchUpdateRequest update2 = service.Spreadsheets.Values.BatchUpdate(
+            var update2 = service.Spreadsheets.Values.BatchUpdate(
                 body, Config.SpreadsheetId);
 
             var response = update2.Execute();

@@ -6,6 +6,8 @@ namespace Roster
     {
         public string Name { get; set; }
 
+        public string Mobile { get; set; }
+
         public string TogetherWith { get; set; }
 
         public List<IPersonLimitation> Limitations { get; set; }
@@ -15,6 +17,7 @@ namespace Roster
         public List<Duty> Duties { get; set; }
 
         public List<DutyType> DutyTypes { get; set; }
+        public bool WeaponRent { get; set; }
 
         public DateTime LastDuty
         {
