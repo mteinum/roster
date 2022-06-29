@@ -1,5 +1,4 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
+﻿using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Roster.Limitation;
@@ -8,6 +7,11 @@ namespace Roster
 {
     class SpreadsheetReader
     {
+        static DateTime Iso8601(string s)
+        {
+            return DateTime.ParseExact(s, "yyyyMMdd", null);
+        }
+
         public static string ApplicationName = "Roster";
 
         public static SheetsService CreateSheetsService()
@@ -23,21 +27,16 @@ namespace Roster
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static List<Person> LoadPersons(SheetsService service, string spreadsheetId)
+        public static List<Person> LoadPersons(SheetsService service)
         {
-            string range = "Vakter!A2:K33";
             SpreadsheetsResource.ValuesResource.GetRequest request =
-                service.Spreadsheets.Values.Get(spreadsheetId, range);
+                service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.PersonRange);
 
-            ValueRange response = request.Execute();
-            IList<IList<object>> values = response.Values;
-
-            if (values == null || values.Count == 0)
-            {
-                Console.WriteLine("No data found.");
-            }
-
-            var result = values.Select(CreatePerson).ToList();
+            var result = request
+                .Execute()
+                .Values
+                .Select(CreatePerson)
+                .ToList();
 
             foreach (var row in result)
             {
@@ -74,6 +73,7 @@ namespace Roster
 
             var vakt1 = row.Count > 9 ? row[9].ToString() : null;
             var available = row.Count > 10 ? row[10].ToString() : null;
+            var unavailable = row.Count > 11 ? row[11].ToString() : null;
 
             var person = new Person
             {
@@ -89,9 +89,7 @@ namespace Roster
 
             if (available != null)
             {
-                var dates = available.Split(';');
-
-                foreach (var date in dates)
+                foreach (var date in available.Split(';'))
                 {
                     // syntax:
                     // part;part;part
@@ -103,15 +101,33 @@ namespace Roster
 
                     if (date.EndsWith("+"))
                     {
-                        person.Limitations.Add(new AvailableAfterLimitation(DateTime.ParseExact(date.Substring(0, 8), "yyyyMMdd", null)));
+                        person.Limitations.Add(new AvailableAfterLimitation(Iso8601(date.Substring(0, 8))));
                     }
-                    else
+                    else if (date.Length == 8)
                     {
-                        person.AvailableDates.Add(DateTime.ParseExact(date, "yyyyMMdd", null));
+                        person.AvailableDates.Add(Iso8601(date));
                     }
                 }
 
                 person.Limitations.Add(new OnlyOnAvailableDatesLimitation(person.AvailableDates));
+            }
+
+            if (unavailable != null)
+            {
+                foreach (var date in unavailable.Split(';'))
+                {
+                    if (date.Length == 8)
+                    {
+                        person.Limitations.Add(new UnavailableDateLimitation(Iso8601(date)));
+                    }
+                    else
+                    {
+                        var parts = date.Split('-');
+
+                        person.Limitations.Add(new UnavailableDateLimitation(Iso8601(parts[0]), Iso8601(parts[1])));
+
+                    }
+                }
             }
 
             if (onlyEvenWeek)
@@ -144,13 +160,12 @@ namespace Roster
         }
 
 
-        public static List<Duty> LoadDuties(SheetsService service, string spreadsheetId)
+        public static List<Duty> LoadDuties(SheetsService service)
         {
             var result = new List<Duty>();
 
-            string range = "Høst 2022!A6:L215";
             SpreadsheetsResource.ValuesResource.GetRequest request =
-                service.Spreadsheets.Values.Get(spreadsheetId, range);
+                service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.DutyRange);
 
             ValueRange response = request.Execute();
             IList<IList<Object>> values = response.Values;

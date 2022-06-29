@@ -1,20 +1,17 @@
 ﻿namespace Roster
 {
-
     public class Program
     {
-        private const string spreadsheetId = "17od-9xfJT-gJ0NPSx9H4SmfZ-cGY0-MQg0Z2qqYFYiM";
-
         public static void Main(string[] args)
         {
             var service = SpreadsheetReader.CreateSheetsService();
 
-            var persons = SpreadsheetReader.LoadPersons(service, spreadsheetId);
-            var duties = SpreadsheetReader.LoadDuties(service, spreadsheetId);
+            var persons = SpreadsheetReader.LoadPersons(service);
+            var duties = SpreadsheetReader.LoadDuties(service);
 
             Assign(persons, duties);
 
-            SpreadsheetWriter.WriteBackToSheet(duties, service, spreadsheetId);
+            SpreadsheetWriter.WriteBackToSheet(duties, service);
         }
 
         static void Assign(List<Person> persons, List<Duty> duties)

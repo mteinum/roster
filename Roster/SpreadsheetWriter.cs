@@ -5,7 +5,7 @@ namespace Roster
 {
     class SpreadsheetWriter
     {
-        public static void WriteBackToSheet(List<Duty> duties, SheetsService service, string spreadsheetId)
+        public static void WriteBackToSheet(List<Duty> duties, SheetsService service)
         {
             var values = new List<ValueRange>();
 
@@ -42,7 +42,7 @@ namespace Roster
 
 
             SpreadsheetsResource.ValuesResource.BatchUpdateRequest update2 = service.Spreadsheets.Values.BatchUpdate(
-                body, spreadsheetId);
+                body, Config.SpreadsheetId);
 
             var response = update2.Execute();
 
