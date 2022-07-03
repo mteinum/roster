@@ -12,6 +12,8 @@ namespace Roster
 
         public List<IPersonLimitation> Limitations { get; set; }
 
+        public List<Location> Locations { get; set; }
+
         public bool IsAvailable(Duty duty) => Limitations.All(l => l.IsAvailable(duty));
 
         public List<Duty> Duties { get; set; }

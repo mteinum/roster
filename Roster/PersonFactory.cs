@@ -27,6 +27,7 @@ namespace Roster
             public string Mobile { get; set; }
             public bool EvenWeek { get; set; }
             public bool NewShooter { get; set; }
+            public string Locations { get; set; }
             public bool Monday { get; set; }
             public bool Tuesday { get; set; }
             public bool Wednesday { get; set; }
@@ -39,22 +40,25 @@ namespace Roster
 
             public static PersonDto Create(IList<object> row)
             {
+                bool True(int n) => Equals(row[n], "TRUE");
+
                 return new PersonDto
                 {
                     LastName = row[0].ToString(),
                     FirstName = row[1].ToString(),
                     Mobile = row[2].ToString(),
-                    EvenWeek = Equals("1", row[3]),
-                    NewShooter = Equals("1", row[4]),
-                    Monday = Equals("1", row[5]),
-                    Tuesday = Equals("1", row[6]),
-                    Wednesday = Equals("1", row[7]),
-                    Thursday = Equals("1", row[8]),
-                    Friday = Equals("1", row[9]),
-                    Person2 = row[10].ToString(),
-                    Available = row[11].ToString(),
-                    Unavailable = row[12].ToString(),
-                    WeaponRent = Equals(row[13], "TRUE")
+                    EvenWeek = True(3),
+                    NewShooter = True(4),
+                    Locations = row[5].ToString(),
+                    Monday = True(6),
+                    Tuesday = True(7),
+                    Wednesday = True(8),
+                    Thursday = True(9),
+                    Friday = True(10),
+                    Person2 = row[11].ToString(),
+                    Available = row[12].ToString(),
+                    Unavailable = row[13].ToString(),
+                    WeaponRent = True(14)
                 };
             }
         }
@@ -81,20 +85,22 @@ namespace Roster
                 TogetherWith = row.Person2,
                 AvailableDates = new List<DateTime>(),
                 AvailableDays = weekdays.All(b => b == false) ? 5 : weekdays.Count(b => b),
-                WeaponRent = row.WeaponRent
+                WeaponRent = row.WeaponRent,
+                Locations = new List<Location>()
             };
 
             person.Limitations.Add(new WeaponRentLimitation(row.WeaponRent));
             person.Limitations.Add(new NoDuplicateDutyLimitation(person.Duties));
             person.Limitations.Add(new OnlyOnAvailableDatesLimitation(person.AvailableDates));
             person.Limitations.Add(new DutyTypeLimitation(person.DutyTypes));
-            person.Limitations.Add(new LocationLimitation(new List<Location> {
-                Location.Farvannet,
-                Location.Gimlehallen }));
+            person.Limitations.Add(new LocationLimitation(person.Locations));
 
             person.Limitations.AddIf(row.EvenWeek, new EvenWeekLimitation());
             person.Limitations.AddIf(weekdays.Any(b => b), new WeekDayLimitation(weekdays));
             person.Limitations.AddIf(!string.IsNullOrEmpty(row.Person2), new TogetherWithLimitation(row.Person2));
+
+            person.Locations.AddIf(row.Locations.Contains('G'), Location.Gimlehallen);
+            person.Locations.AddIf(row.Locations.Contains('F'), Location.Farvannet);
 
             AddAvailable(person, row);
             AddUnavailable(person, row);
