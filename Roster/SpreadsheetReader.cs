@@ -79,7 +79,7 @@ namespace Roster
                 {
                     dutyType = DutyType.NewShooters;
                 }
-                else if (row[4].ToString() == "Organisert" || row[4].ToString() == "Stevnetrening")
+                else if (row[4].ToString() == "Organisert")
                 {
                     dutyType = DutyType.Organized;
                 }
@@ -89,6 +89,7 @@ namespace Roster
                 }
                 else
                 {
+                    // ungdom, stevne, annet som ikke automatisk skal tildeles
                     continue;
                 }
 
@@ -113,6 +114,39 @@ namespace Roster
             }
 
             return result;
+        }
+
+        public static void CreatePersonReport(SheetsService service)
+        {
+            SpreadsheetsResource.ValuesResource.GetRequest request =
+                service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.PersonReportRange);
+
+            ValueRange response = request.Execute();
+            IList<IList<Object>> values = response.Values;
+
+            if (values == null || values.Count == 0)
+            {
+                Console.WriteLine("No data found.");
+            }
+
+            var persons = new List<string>();
+
+            foreach (var row in values)
+            {
+                if (row.Count > 0)
+                    persons.Add(row[0].ToString());
+                if (row.Count > 2)
+                    persons.Add(row[2].ToString());
+            }
+
+            var report = persons
+                .Where(s => string.IsNullOrEmpty(s) == false)
+                .GroupBy(s => s);
+
+            foreach (var r in report.OrderByDescending(x => x.Count()))
+            {
+                Console.WriteLine($"{r.Key}: {r.Count()}");
+            }
         }
     }
 }

@@ -23,14 +23,11 @@ namespace Roster
 
             foreach (var duty in duties)
             {
-                values.Add(CreateValueRange(duty.Row, "H", duty.Person.Name));
-                values.Add(CreateValueRange(duty.Row, "I", duty.Person.Mobile));
+                values.Add(CreateValueRange(duty.Row, "H", duty.Person?.Name ?? String.Empty));
+                values.Add(CreateValueRange(duty.Row, "I", duty.Person?.Mobile ?? String.Empty));
 
-                if (duty.Person2 != null)
-                {
-                    values.Add(CreateValueRange(duty.Row, "J", duty.Person2.Name));
-                    values.Add(CreateValueRange(duty.Row, "K", duty.Person2.Mobile));
-                }
+                values.Add(CreateValueRange(duty.Row, "J", duty.Person2?.Name ?? String.Empty));
+                values.Add(CreateValueRange(duty.Row, "K", duty.Person2?.Mobile ?? String.Empty));
             }
 
             BatchUpdateValuesRequest body = new()

@@ -15,12 +15,32 @@
         {
             var service = SpreadsheetReader.CreateSheetsService();
 
-            var persons = SpreadsheetReader.LoadPersons(service);
-            var duties = SpreadsheetReader.LoadDuties(service);
+            void Usage()
+            {
+                Console.WriteLine("a: assign persons to duties");
+                Console.WriteLine("r: create report of persons");
+            }
 
-            Assign(persons, duties);
+            Usage();
+            var cmd = Console.ReadLine();
 
-            SpreadsheetWriter.WriteBackToSheet(duties, service);
+            if (cmd == "a")
+            {
+                var persons = SpreadsheetReader.LoadPersons(service);
+                var duties = SpreadsheetReader.LoadDuties(service);
+
+                Assign(persons, duties);
+
+                SpreadsheetWriter.WriteBackToSheet(duties, service);
+            }
+            else if (cmd == "r")
+            {
+                SpreadsheetReader.CreatePersonReport(service);
+            }
+            else
+            {
+                Console.WriteLine($"Unknown command '{cmd}'");
+            }
         }
 
         static void Assign(List<Person> persons, List<Duty> duties)
@@ -33,7 +53,7 @@
                     .ThenBy(p => p.Duties.Count)
                     .ThenBy(p => p.AvailableDays)
                     .ThenBy(p => p.LastDuty)
-                    .First();
+                    .FirstOrDefault();
             }
 
             // 1. alle nybegynnere (vakt 2 har ingen bane)
@@ -41,6 +61,9 @@
             foreach (var duty in duties)
             {
                 var person = GetNextPerson(duty);
+
+                if (person == null)
+                    continue;
 
                 person.Duties.Add(duty);
                 duty.Person = person;
