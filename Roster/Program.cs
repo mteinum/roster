@@ -1,5 +1,14 @@
 ﻿namespace Roster
 {
+    static class PersonExt
+    {
+        public static Person FromName(this List<Person> list, string name) => list.Single(p => p.Name == name);
+
+        public static IEnumerable<Person> IsAvailable(this IEnumerable<Person> list, Duty duty)
+            => list.Where(p => p.IsAvailable(duty));
+
+    }
+
     public class Program
     {
         public static void Main(string[] args)
@@ -19,14 +28,15 @@
             Person GetNextPerson(Duty duty)
             {
                 return persons
-                    .Where(p => p.IsAvailable(duty))
-                    .Where(p => string.IsNullOrEmpty(p.TogetherWith))
+                    .IsAvailable(duty)
                     .OrderBy(p => p.Priority(duty))
                     .ThenBy(p => p.Duties.Count)
                     .ThenBy(p => p.AvailableDays)
                     .ThenBy(p => p.LastDuty)
                     .First();
             }
+
+            // 1. alle nybegynnere (vakt 2 har ingen bane)
 
             foreach (var duty in duties)
             {
@@ -38,25 +48,7 @@
                 if (duty.DutyType == DutyType.NewShooters)
                 {
                     // sjekk om det finnes en vakt som er sammen med vakt1
-                    var person2 = persons.FirstOrDefault(p => p.TogetherWith == person.Name);
-
-                    if (person2 == null)
-                    {
-                        var onlyAsPerson1 = persons
-                            .Where(p => string.IsNullOrEmpty(p.TogetherWith) == false)
-                            .Select(p => p.TogetherWith)
-                            .ToList();
-
-                        person2 = persons
-                            .Where(p => p != duty.Person)
-                            .Where(p => p.IsAvailable(duty))
-                            .Where(p => onlyAsPerson1.Contains(p.Name) == false)
-                            .OrderBy(p => p.Priority(duty))
-                            .ThenBy(p => p.Duties.Count)
-                            .ThenBy(p => p.AvailableDays)
-                            .ThenBy(p => p.LastDuty)
-                            .First();
-                    }
+                    var person2 = persons.FromName(person.TogetherWith);
 
                     person2.Duties.Add(duty);
                     duty.Person2 = person2;

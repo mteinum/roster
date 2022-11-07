@@ -27,23 +27,23 @@ namespace Roster
             SpreadsheetsResource.ValuesResource.GetRequest request =
                 service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.PersonRange);
 
-            var result = request
+            var persons = request
                 .Execute()
                 .Values
                 .Select(PersonFactory.CreatePerson)
                 .ToList();
 
-            foreach (var row in result)
+            foreach (var person in persons)
             {
-                if (!string.IsNullOrEmpty(row.TogetherWith))
+                if (!string.IsNullOrEmpty(person.TogetherWith))
                 {
-                    var other = result.First(p => p.Name == row.TogetherWith);
-
-                    other.DutyTypes.Remove(DutyType.Organized);
+                    var other = persons.First(p => p.Name == person.TogetherWith);
+                    other.Locations.Clear();
+                    //other.DutyTypes.Remove(DutyType.Organized);
                 }
             }
 
-            return result;
+            return persons;
         }
 
 
@@ -63,7 +63,7 @@ namespace Roster
                 Console.WriteLine("No data found.");
             }
 
-            int rowNumber = 5;
+            int rowNumber = 229; // see Config.DutyRange
 
             foreach (var row in values)
             {
@@ -79,11 +79,11 @@ namespace Roster
                 {
                     dutyType = DutyType.NewShooters;
                 }
-                else if (row[4].ToString() == "Organisert")
+                else if (row[4].ToString() == "Organisert" || row[4].ToString() == "Stevnetrening")
                 {
                     dutyType = DutyType.Organized;
                 }
-                else if (row[4].ToString() == "Luft")
+                else if (row[4].ToString() == "Luft" && row[2].ToString() == "Fredag")
                 {
                     dutyType = DutyType.AirPistol;
                 }

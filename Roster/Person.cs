@@ -9,6 +9,9 @@ namespace Roster
         public string Mobile { get; set; }
 
         public string TogetherWith { get; set; }
+        public bool Youth { get; set; }
+        public bool NewShooter { get; set; }
+        public bool Air { get; set; }
 
         public List<IPersonLimitation> Limitations { get; set; }
 

@@ -16,7 +16,7 @@ namespace Roster
                 return new ValueRange
                 {
                     MajorDimension = "COLUMNS",
-                    Range = $"Høst 2022!{column}{row}",
+                    Range = $"Aktiviteter!{column}{row}",
                     Values = new List<IList<object>> { oblist }
                 };
             }

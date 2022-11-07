@@ -7,15 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspose.Cells" Version="22.6.1" />
-    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.57.0.2720" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <None Remove="credentials.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="credentials.json">
+    <Content Include="credentials.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspose.Cells" Version="22.6.1" />
+    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.57.0.2720" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
 </Project>
