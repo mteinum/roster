@@ -18,20 +18,22 @@
             void Usage()
             {
                 Console.WriteLine("a: assign persons to duties");
+                Console.WriteLine("d: assign persons to duties, dry run");
                 Console.WriteLine("r: create report of persons");
             }
 
             Usage();
             var cmd = Console.ReadLine();
 
-            if (cmd == "a")
+            if (cmd == "a" || cmd == "d")
             {
                 var persons = SpreadsheetReader.LoadPersons(service);
                 var duties = SpreadsheetReader.LoadDuties(service);
 
                 Assign(persons, duties);
 
-                SpreadsheetWriter.WriteBackToSheet(duties, service);
+                if (cmd == "a")
+                    SpreadsheetWriter.WriteBackToSheet(duties, service);
             }
             else if (cmd == "r")
             {
@@ -47,13 +49,16 @@
         {
             Person GetNextPerson(Duty duty)
             {
-                return persons
-                    .IsAvailable(duty)
+                var candidates = persons.IsAvailable(duty);
+
+                var theChoosenOne = candidates
                     .OrderBy(p => p.Priority(duty))
+                    .ThenBy(p => p.LastDuty)
                     .ThenBy(p => p.Duties.Count)
                     .ThenBy(p => p.AvailableDays)
-                    .ThenBy(p => p.LastDuty)
                     .FirstOrDefault();
+
+                return theChoosenOne;
             }
 
             // 1. alle nybegynnere (vakt 2 har ingen bane)
@@ -70,7 +75,6 @@
 
                 if (duty.DutyType == DutyType.NewShooters)
                 {
-                    // sjekk om det finnes en vakt som er sammen med vakt1
                     var person2 = persons.FromName(person.TogetherWith);
 
                     person2.Duties.Add(duty);

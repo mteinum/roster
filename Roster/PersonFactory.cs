@@ -36,6 +36,7 @@ namespace Roster
             public string Person2 { get; set; }
             public string Available { get; set; }
             public string Unavailable { get; set; }
+            public bool NotFirstWednesdayInMonth { get; set; }
             public bool WeaponRent { get; set; }
 
             public static PersonDto Create(IList<object> row)
@@ -58,7 +59,8 @@ namespace Roster
                     Thursday = True(11),
                     Available = row[12].ToString(),
                     Unavailable = row[13].ToString(),
-                    WeaponRent = True(14)
+                    NotFirstWednesdayInMonth = True(14),
+                    WeaponRent = True(15)
                 };
             }
         }
@@ -83,7 +85,7 @@ namespace Roster
                 DutyTypes = new List<DutyType>(),
                 TogetherWith = row.Person2,
                 AvailableDates = new List<DateTime>(),
-                AvailableDays = weekdays.All(b => b == false) ? 4 : weekdays.Count(b => b),
+                AvailableDays = weekdays.All(b => b == false) ? weekdays.Length : weekdays.Count(b => b),
                 WeaponRent = row.WeaponRent,
                 Locations = new List<Location>(),
                 Youth = row.Youth,
@@ -96,7 +98,8 @@ namespace Roster
             person.Limitations.Add(new OnlyOnAvailableDatesLimitation(person.AvailableDates));
             person.Limitations.Add(new DutyTypeLimitation(person.DutyTypes));
             person.Limitations.Add(new LocationLimitation(person.Locations));
-
+            
+            person.Limitations.AddIf(row.NotFirstWednesdayInMonth, new NotFirstWednesdayInMonthLimitation());
             person.Limitations.AddIf(row.OddWeek, new OddWeekLimitation());
             person.Limitations.AddIf(weekdays.Any(b => b), new WeekDayLimitation(weekdays));
             //person.Limitations.AddIf(!string.IsNullOrEmpty(row.Person2), new TogetherWithLimitation(row.Person2));
