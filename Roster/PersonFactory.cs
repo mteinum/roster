@@ -98,7 +98,7 @@ namespace Roster
             person.Limitations.Add(new OnlyOnAvailableDatesLimitation(person.AvailableDates));
             person.Limitations.Add(new DutyTypeLimitation(person.DutyTypes));
             person.Limitations.Add(new LocationLimitation(person.Locations));
-            
+
             person.Limitations.AddIf(row.NotFirstWednesdayInMonth, new NotFirstWednesdayInMonthLimitation());
             person.Limitations.AddIf(row.OddWeek, new OddWeekLimitation());
             person.Limitations.AddIf(weekdays.Any(b => b), new WeekDayLimitation(weekdays));
@@ -142,12 +142,10 @@ namespace Roster
                 {
                     person.Limitations.Add(new UnavailableDateLimitation(Iso8601(date)));
                 }
-                //else if (date.Length == (10 + 1 + 10))
-                //{
-                //    var parts = date.Split('-');
-
-                //    person.Limitations.Add(new UnavailableDateLimitation(Iso8601(parts[0]), Iso8601(parts[1])));
-                //}
+                else if (date.Length == 3 && date[0] == 'U')
+                {
+                    person.Limitations.Add(new UnavailableWeekLimitation(date.SkipOneAndParse()));
+                }
             }
         }
 

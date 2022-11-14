@@ -4,6 +4,13 @@ using Google.Apis.Sheets.v4.Data;
 
 namespace Roster
 {
+    static class StringEx
+    {
+        public static int SkipOneAndParse(this string s)
+        {
+            return int.Parse(string.Join("", s.Skip(1)));
+        }
+    }
 
     class SpreadsheetReader
     {
@@ -64,7 +71,8 @@ namespace Roster
             }
 
             // public static string DutyRange = "Aktiviteter!A81:L334";
-            int rowNumber = 80; // see Config.DutyRange
+
+            var rowNumber = Config.DutyRange.Split('!').Last().Split(':').First().SkipOneAndParse() - 1;
 
             foreach (var row in values)
             {

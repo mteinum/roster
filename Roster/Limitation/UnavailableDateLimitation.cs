@@ -1,5 +1,6 @@
 ﻿namespace Roster.Limitation
 {
+
     class UnavailableDateLimitation : IPersonLimitation
     {
         DateTime From { get; }
