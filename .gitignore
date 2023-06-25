@@ -7,3 +7,5 @@ credentials.json
 /.vs
 /Roster/bin/Debug/net6.0
 /Roster/obj
+*.pdf
+*.xlsx

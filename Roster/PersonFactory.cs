@@ -24,6 +24,7 @@ namespace Roster
         {
             public string Name { get; set; }
             public string Mobile { get; set; }
+            public string Email { get; set; }
             public bool OddWeek { get; set; }
             public bool Youth { get; set; }
             public bool NewShooter { get; set; }
@@ -39,33 +40,35 @@ namespace Roster
             public bool NotFirstWednesdayInMonth { get; set; }
             public bool WeaponRent { get; set; }
 
-            public static PersonDto Create(IList<object> row)
+            public static PersonDto Create(IList<string> row)
             {
-                bool True(int n) => Equals(row[n], "TRUE");
+                bool True(int n) => string.Equals(row[n], "true", StringComparison.InvariantCultureIgnoreCase);
 
                 return new PersonDto
                 {
-                    Name = row[0].ToString(),
-                    Mobile = row[1].ToString(),
-                    Person2 = row[2].ToString(),
-                    OddWeek = True(3),
-                    Youth = True(4),
-                    NewShooter = True(5),
-                    Air = True(6),
-                    Locations = row[7].ToString(),
-                    Monday = True(8),
-                    Tuesday = True(9),
-                    Wednesday = True(10),
-                    Thursday = True(11),
-                    Available = row[12].ToString(),
-                    Unavailable = row[13].ToString(),
-                    NotFirstWednesdayInMonth = True(14),
-                    WeaponRent = True(15)
+                    Name = row[0],
+                    Mobile = row[1],
+                    Email = row[2],
+                    Person2 = row[3],
+                    OddWeek = True(4),
+                    Youth = True(5),
+                    NewShooter = True(6),
+                    Air = True(7),
+                    Locations = row[8],
+                    Monday = True(9),
+                    Tuesday = True(10),
+                    Wednesday = True(11),
+                    Thursday = True(12),
+                    Available = row[13],
+                    Unavailable = row[14],
+                    NotFirstWednesdayInMonth = True(15),
+                    WeaponRent = True(16)
                 };
             }
         }
 
-        public static Person CreatePerson(IList<object> row) => CreatePerson(PersonDto.Create(row));
+        public static Person CreatePerson(IList<string> row) =>
+            CreatePerson(PersonDto.Create(row.Select(s => s ?? string.Empty).ToList()));
 
         public static Person CreatePerson(PersonDto row)
         {

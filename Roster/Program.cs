@@ -1,47 +1,65 @@
-﻿namespace Roster
+﻿using OfficeOpenXml;
+
+namespace Roster
 {
-    static class PersonExt
-    {
-        public static Person FromName(this List<Person> list, string name) => list.Single(p => p.Name == name);
-
-        public static IEnumerable<Person> IsAvailable(this IEnumerable<Person> list, Duty duty)
-            => list.Where(p => p.IsAvailable(duty));
-
-    }
 
     public class Program
     {
         public static void Main(string[] args)
         {
-            var service = SpreadsheetReader.CreateSheetsService();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            void Usage()
+            using (var package = new ExcelPackage(@"c:\\code\roster\KPS Aktivitetskalender.xlsx"))
             {
-                Console.WriteLine("a: assign persons to duties");
-                Console.WriteLine("d: assign persons to duties, dry run");
-                Console.WriteLine("r: create report of persons");
-            }
+                var service2 = new ExcelSheetDataSource(package);
 
-            Usage();
-            var cmd = Console.ReadLine();
+                void Usage()
+                {
+                    Console.WriteLine("a: assign persons to duties");
+                    Console.WriteLine("d: assign persons to duties, dry run");
+                    Console.WriteLine("c: clear duties");
+                    Console.WriteLine("r: create person report");
+                }
 
-            if (cmd == "a" || cmd == "d")
-            {
-                var persons = SpreadsheetReader.LoadPersons(service);
-                var duties = SpreadsheetReader.LoadDuties(service);
+                Usage();
+                var cmd = Console.ReadLine();
 
-                Assign(persons, duties);
+                if (cmd == "a" || cmd == "d")
+                {
+                    var persons = PersonLoader.LoadPersons(service2);
+                    var duties = SpreadsheetReader.LoadDuties(service2);
 
-                if (cmd == "a")
-                    SpreadsheetWriter.WriteBackToSheet(duties, service);
-            }
-            else if (cmd == "r")
-            {
-                SpreadsheetReader.CreatePersonReport(service);
-            }
-            else
-            {
-                Console.WriteLine($"Unknown command '{cmd}'");
+                    Assign(persons, duties);
+
+                    SpreadsheetWriter.WriteBackToSheet(duties, service2);
+
+                    if (cmd == "a")
+                        package.Save();
+                }
+                else if (cmd == "c")
+                {
+                    var duties = SpreadsheetReader.LoadDuties(service2);
+                    SpreadsheetWriter.WriteBackToSheet(duties, service2);
+                    //package.Save();
+                }
+                else if (cmd == "r")
+                {
+                    var duties = SpreadsheetReader.LoadDuties(service2);
+
+                    var names = duties.Select(d => new[] { d.Person1Name, d.Person2Name })
+                        .SelectMany(d => d)
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .GroupBy(k => k);
+
+                    foreach (var name in names.OrderByDescending(k => k.Count()))
+                    {
+                        Console.WriteLine($"{name.Key}: {name.Count()}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Unknown command '{cmd}'");
+                }
             }
         }
 

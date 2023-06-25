@@ -1,6 +1,4 @@
-﻿using Google.Apis.Services;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
+﻿using OfficeOpenXml;
 
 namespace Roster
 {
@@ -12,71 +10,58 @@ namespace Roster
         }
     }
 
+    class PersonLoader
+    {
+        public static List<Person> LoadPersons(ISheetDataSource dataSource)
+        {
+            var sheet = dataSource.CreateReader("Vakter");
+
+            var people = new List<Person>();
+
+            for (int row = 2; ; row++)
+            {
+                var data = sheet.ReadLine(row, 17);
+
+                if (string.IsNullOrEmpty(data[0]))
+                    break;
+
+                people.Add(PersonFactory.CreatePerson(data));
+            }
+
+            foreach (var person in people)
+            {
+                if (!string.IsNullOrEmpty(person.TogetherWith))
+                {
+                    var other = people.First(p => p.Name == person.TogetherWith);
+                    other.Locations.Clear();
+                }
+            }
+
+            return people;
+        }
+    }
+
     class SpreadsheetReader
     {
         public static string ApplicationName = "Roster";
 
-        public static SheetsService CreateSheetsService()
-        {
-            return new SheetsService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = UserCredentialBuilder.LoadUserCredential(),
-                ApplicationName = ApplicationName
-            });
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="credential"></param>
-        /// <returns></returns>
-        public static List<Person> LoadPersons(SheetsService service)
-        {
-            SpreadsheetsResource.ValuesResource.GetRequest request =
-                service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.PersonRange);
 
-            var persons = request
-                .Execute()
-                .Values
-                .Select(PersonFactory.CreatePerson)
-                .ToList();
-
-            foreach (var person in persons)
-            {
-                if (!string.IsNullOrEmpty(person.TogetherWith))
-                {
-                    var other = persons.First(p => p.Name == person.TogetherWith);
-                    other.Locations.Clear();
-                    //other.DutyTypes.Remove(DutyType.Organized);
-                }
-            }
-
-            return persons;
-        }
-
-
-
-        public static List<Duty> LoadDuties(SheetsService service)
+        public static List<Duty> LoadDuties(ISheetDataSource dataSource)
         {
             var result = new List<Duty>();
 
-            SpreadsheetsResource.ValuesResource.GetRequest request =
-                service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.DutyRange);
+            var sheet = dataSource.CreateReader("Aktiviteter");
 
-            ValueRange response = request.Execute();
-            IList<IList<Object>> values = response.Values;
+            var previousBlank = false;
 
-            if (values == null || values.Count == 0)
+            for (int rowNumber=5; ; rowNumber++)
             {
-                Console.WriteLine("No data found.");
-            }
+                var row = sheet.ReadLine(rowNumber, 12);
 
-            // public static string DutyRange = "Aktiviteter!A81:L334";
+                if (string.IsNullOrEmpty(row[0]) && previousBlank)
+                    break;
 
-            var rowNumber = Config.DutyRange.Split('!').Last().Split(':').First().SkipOneAndParse() - 1;
-
-            foreach (var row in values)
-            {
-                rowNumber++;
+                previousBlank = string.IsNullOrEmpty(row[0]);
 
                 if (row.Count != 12)
                     continue;
@@ -84,15 +69,15 @@ namespace Roster
                 DutyType dutyType;
                 Location location;
 
-                if (row[4].ToString() == "Nybegynner")
+                if (row[4] == "Nybegynner")
                 {
                     dutyType = DutyType.NewShooters;
                 }
-                else if (row[4].ToString() == "Organisert")
+                else if (row[4] == "Organisert")
                 {
                     dutyType = DutyType.Organized;
                 }
-                else if (row[4].ToString() == "Luft" && row[2].ToString() == "Fredag")
+                else if (row[4] == "Luft" && row[2] == "Fredag")
                 {
                     dutyType = DutyType.AirPistol;
                 }
@@ -102,7 +87,7 @@ namespace Roster
                     continue;
                 }
 
-                if (row[3].ToString() == "Gimlehallen")
+                if (row[3] == "Gimlehallen")
                 {
                     location = Location.Gimlehallen;
                 }
@@ -113,52 +98,20 @@ namespace Roster
 
                 result.Add(new Duty
                 {
-                    DateTime = DateTime.ParseExact(row[1].ToString(), "yyyy-MM-dd", null),
+                    Row = rowNumber,
+                    WeekNumber = int.Parse(row[0]),
+                    DateTime = DateTime.FromOADate(Convert.ToDouble(row[1])),
                     DutyType = dutyType,
                     Location = location,
-                    WeekNumber = int.Parse(row[0].ToString()),
-                    Row = rowNumber,
-                    WeaponRent = Equals("TRUE", row[11])
+                    Person1Name = row[7],
+                    Person1Phone = row[8],
+                    Person2Name = row[9],
+                    Person2Phone = row[10],
+                    WeaponRent = Equals("True", row[11]),
                 });
             }
 
             return result;
-        }
-
-        public static void CreatePersonReport(SheetsService service)
-        {
-            SpreadsheetsResource.ValuesResource.GetRequest request =
-                service.Spreadsheets.Values.Get(Config.SpreadsheetId, Config.PersonReportRange);
-
-            ValueRange response = request.Execute();
-            IList<IList<Object>> values = response.Values;
-
-            if (values == null || values.Count == 0)
-            {
-                Console.WriteLine("No data found.");
-            }
-
-            var persons = new List<string>();
-
-            foreach (var row in values)
-            {
-                if (row.Count > 0)
-                    persons.Add(row[0].ToString());
-                if (row.Count > 2)
-                    persons.Add(row[2].ToString());
-            }
-
-            persons = persons.Where(s => string.IsNullOrEmpty(s) == false).ToList();
-
-            var report = persons
-                   .GroupBy(s => s);
-
-            foreach (var r in report.OrderByDescending(x => x.Count()))
-            {
-                Console.WriteLine($"{r.Key}: {r.Count()}");
-            }
-
-            Console.WriteLine($"Total: {persons.Count}");
         }
     }
 }

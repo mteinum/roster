@@ -1,46 +1,21 @@
-﻿using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
-
+﻿
 namespace Roster
 {
     class SpreadsheetWriter
     {
-        public static void WriteBackToSheet(List<Duty> duties, SheetsService service)
+        public static void WriteBackToSheet(List<Duty> duties, ISheetDataSource service)
         {
-            var values = new List<ValueRange>();
-
-            static ValueRange CreateValueRange(int row, string column, string content)
-            {
-                var oblist = new List<object>() { content };
-
-                return new ValueRange
-                {
-                    MajorDimension = "COLUMNS",
-                    Range = $"Aktiviteter!{column}{row}",
-                    Values = new List<IList<object>> { oblist }
-                };
-            }
+            var writer = service.CreateWriter("Aktiviteter");
 
             foreach (var duty in duties)
             {
-                values.Add(CreateValueRange(duty.Row, "H", duty.Person?.Name ?? String.Empty));
-                values.Add(CreateValueRange(duty.Row, "I", duty.Person?.Mobile ?? String.Empty));
+                int row = duty.Row - 1;
 
-                values.Add(CreateValueRange(duty.Row, "J", duty.Person2?.Name ?? String.Empty));
-                values.Add(CreateValueRange(duty.Row, "K", duty.Person2?.Mobile ?? String.Empty));
+                writer.WriteLine(row, 7, duty.Person?.Name ?? String.Empty);
+                writer.WriteLine(row, 8, duty.Person?.Mobile ?? String.Empty);
+                writer.WriteLine(row, 9, duty.Person2?.Name ?? String.Empty);
+                writer.WriteLine(row, 10, duty.Person2?.Mobile ?? String.Empty);
             }
-
-            BatchUpdateValuesRequest body = new()
-            {
-                Data = values,
-                ValueInputOption = "RAW"
-            };
-
-            var update2 = service.Spreadsheets.Values.BatchUpdate(
-                body, Config.SpreadsheetId);
-
-            var response = update2.Execute();
-
         }
     }
 }
