@@ -1,4 +1,6 @@
 ﻿
+using Roster.Sheet;
+
 namespace Roster
 {
     class SpreadsheetWriter

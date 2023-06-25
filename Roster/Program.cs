@@ -1,4 +1,5 @@
 ﻿using OfficeOpenXml;
+using Roster.Sheet;
 
 namespace Roster
 {
@@ -27,7 +28,7 @@ namespace Roster
                 if (cmd == "a" || cmd == "d")
                 {
                     var persons = PersonLoader.LoadPersons(service2);
-                    var duties = SpreadsheetReader.LoadDuties(service2);
+                    var duties = DutyLoader.LoadDuties(service2);
 
                     Assign(persons, duties);
 
@@ -38,13 +39,13 @@ namespace Roster
                 }
                 else if (cmd == "c")
                 {
-                    var duties = SpreadsheetReader.LoadDuties(service2);
+                    var duties = DutyLoader.LoadDuties(service2);
                     SpreadsheetWriter.WriteBackToSheet(duties, service2);
                     //package.Save();
                 }
                 else if (cmd == "r")
                 {
-                    var duties = SpreadsheetReader.LoadDuties(service2);
+                    var duties = DutyLoader.LoadDuties(service2);
 
                     var names = duties.Select(d => new[] { d.Person1Name, d.Person2Name })
                         .SelectMany(d => d)

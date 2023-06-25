@@ -1,51 +1,9 @@
-﻿using OfficeOpenXml;
+﻿using Roster.Sheet;
 
 namespace Roster
 {
-    static class StringEx
+    class DutyLoader
     {
-        public static int SkipOneAndParse(this string s)
-        {
-            return int.Parse(string.Join("", s.Skip(1)));
-        }
-    }
-
-    class PersonLoader
-    {
-        public static List<Person> LoadPersons(ISheetDataSource dataSource)
-        {
-            var sheet = dataSource.CreateReader("Vakter");
-
-            var people = new List<Person>();
-
-            for (int row = 2; ; row++)
-            {
-                var data = sheet.ReadLine(row, 17);
-
-                if (string.IsNullOrEmpty(data[0]))
-                    break;
-
-                people.Add(PersonFactory.CreatePerson(data));
-            }
-
-            foreach (var person in people)
-            {
-                if (!string.IsNullOrEmpty(person.TogetherWith))
-                {
-                    var other = people.First(p => p.Name == person.TogetherWith);
-                    other.Locations.Clear();
-                }
-            }
-
-            return people;
-        }
-    }
-
-    class SpreadsheetReader
-    {
-        public static string ApplicationName = "Roster";
-
-
         public static List<Duty> LoadDuties(ISheetDataSource dataSource)
         {
             var result = new List<Duty>();
